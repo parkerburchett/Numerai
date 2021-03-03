@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 from collections import Counter
+import csv
 # I think it makes the most sense to cast this in to a relational database for some basic quries.
 # Cast as .csv file
 #user[0] is rank
@@ -108,6 +109,14 @@ def group_users(lines):
         a = [s.split('\t') for s in user]
         user_tupules.append(a)
     
+
+    # at this point you need to work backwards and get the last element. 
+    tup = (lines_with_rank[-1], 0) # might be len lines -1
+    user = lines[tup[0]:]
+    user = [l.strip() for l in user]
+    a = [s.split('\t') for s in user]
+    user_tupules.append(a)
+
     lengths = [len(a) for a in user_tupules]
     len_2_users = [l for l in user_tupules if len(l) ==2]
 
@@ -206,7 +215,6 @@ def parse_3_user_groups(users):
     return uniform_user_list
 
 
-
 def parse_4_user_groups(users):
     """
     These users have a method but do not have compute. 
@@ -232,6 +240,7 @@ def parse_4_user_groups(users):
         uniform_user_list.append(uniform_user)
     return uniform_user_list
 
+
 def parse_5_user_groups(users):
     uniform_user_list =[]
     for a in users:
@@ -256,6 +265,9 @@ def main():
     
     with open('cleaned_scores.txt','r') as fin:
         user_groups = group_users(fin.readlines())
+        g=[]
+        for s in user_groups:
+            g.extend(s)
         cleaned_3_group = parse_3_user_groups(user_groups[1])
         cleaned_4_group = parse_4_user_groups(user_groups[2])
         # some users like NUMERARK have ½MMC this shows up as 'Â½MMC'. Cast this this to somethign more intutive
@@ -263,8 +275,13 @@ def main():
         cleaned_5_group = parse_5_user_groups(user_groups[3])
         all_clean_users = cleaned_3_group
         all_clean_users.extend(cleaned_4_group)
-        cleaned_5_group.extend(cleaned_5_group)
+        all_clean_users.extend(cleaned_5_group)
         print(len(all_clean_users))
+        print(len(g))
+        #I am currently missing 263 from user groups and 1 that was never read in from the file.
 
-       
+        with open('finished_cleaned_users.csv', 'w') as out:
+            writer = csv.writer(out, lineterminator='\n')
+            for row in all_clean_users:
+                writer.writerow(row)
 main()
