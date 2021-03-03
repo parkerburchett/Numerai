@@ -282,6 +282,7 @@ def main():
 
         with open('finished_cleaned_users.csv', 'w') as out:
             writer = csv.writer(out, lineterminator='\n')
+            out.write('rank,usersname,Mode,compute,corr,mmc,fnc,stake,roi_1_day,roi_3_months,roi_1_year\n')
             for row in all_clean_users:
                 writer.writerow(row)
 main()
