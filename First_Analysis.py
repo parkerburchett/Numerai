@@ -24,10 +24,12 @@ def create_scatter_plot(df):
     plt.show()
 
 
-def create_histogram(df, col='corr', bins =20):
-    x = df[col] # you will need to find a way to filter out the zeros. right now I just can't  think of that
+def create_histogram(df, col='corr', bins =10):
+    #non_zero_indexes = df[col] is not 0.0
+
+    x = df[df[col]!=0.0][col]
     plt.hist(x,bins)
-    plt.xlabel(variable)
+    plt.xlabel(col)
     plt.show()
 
 
@@ -41,7 +43,11 @@ def main():
 
     #print(df.head())
     print(df.columns)
-    #create_histogram(df, 'roi_1_year', bins =100)
+    #create_histogram(df, 'roi_1_day', bins =100)
+
+    day = df['roi_1_day']
+    # I have lost all of my negative values for ROI. 
+    
 
     # custom_describe(df, 'corr')
     # custom_describe(df,'roi_1_day')

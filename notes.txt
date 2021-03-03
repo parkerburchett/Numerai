@@ -1,0 +1,13 @@
+I think it would be better to use THIS_IS_A_TEST
+https://numerapi.readthedocs.io/en/latest/api/numerapi.html#module-numerapi.numerapi
+
+daily_user_performances(username)
+
+
+# you already have a list of usernames.
+
+
+I am so silly.
+
+Just use get leader_board = 5000
+

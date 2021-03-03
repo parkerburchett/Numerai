@@ -11,33 +11,25 @@ import csv
 
 
 
-class User:
-    # I don't think I will use this mehtod.
-    def __init__(self,rank, name, mode, corr, mmc, fnc, compute,stake, day_1=None, month_3=None, year_1 =None):
-        self.rank = rank
-        self.name = name
-        self.mode = mode
-        self.corr = corr
-        self.compute = compute
-        self.mmc = mmc
-        self.fnc =fnc
-        self.stake = stake
-        self.day_1 = day_1
-        self.month_3 = month_3
-        self.year_1 = year_1
-
 
 def remove_new_lines(file):
     """
-    remove all the blank lines from the score.txt and rewrite them
+    remove all the blank lines from the score.txt and rewrite them to a new file. 
+
+
+    I think you lose teh 
     """
     lines = file.readlines()
     lines_cleaned = [line for line in lines if line !='\n']
 
-    with open('cleaned_scores.txt', 'x') as out:
+    with open('debugCleanScores.txt', 'x') as out:
         for l in lines_cleaned:
             out.write(l)
 
+
+def tester():
+    with open('scores.txt','r') as file:
+        remove_new_lines(file)
 
 def parse_user_from_raw_lines(record):
     """
@@ -139,7 +131,11 @@ def parse_stats(stats):
 
         Returns an array of floats
 
+        YOU HAVE LOST ALL THE NEGATIVE NUMBER roi HERE
+
     """
+    #print(stats)
+    # at this point there are no negative values in the roi. You lose them eailer. 
     corr = stats[0]
     mmc = stats[1]
     fnc = stats[2]
@@ -178,6 +174,7 @@ def parse_stats(stats):
         except:
             try:
                 r = r[:-1] # remove the % character
+                #print(r)
                 r = round(float(r)*.01,6)
                 res.append(r)
             except:
@@ -205,6 +202,8 @@ def parse_3_user_groups(users):
         rank =a[0]
         name =a[1]
         stats = a[2]
+        print(stats)
+        #there are no negatigve numbers in stats here.
         stat_tup = parse_stats(stats)
         uniform_user = [int(rank[0]), name[0], mode, compute]
         for s in stat_tup:
@@ -265,6 +264,11 @@ def main():
     
     with open('cleaned_scores.txt','r') as fin:
         user_groups = group_users(fin.readlines())
+        for s in user_groups:
+            print('in user groups\n')
+            for i in s:
+                print('in user groups\n')
+                print(i)
         g=[]
         for s in user_groups:
             g.extend(s)
@@ -278,11 +282,15 @@ def main():
         all_clean_users.extend(cleaned_5_group)
         print(len(all_clean_users))
         print(len(g))
-        #I am currently missing 263 from user groups and 1 that was never read in from the file.
+        
+        
+        # I lost all of the negaivte values for ROI somehow. I don't know where. 
 
         with open('finished_cleaned_users.csv', 'w') as out:
             writer = csv.writer(out, lineterminator='\n')
             out.write('rank,usersname,Mode,compute,corr,mmc,fnc,stake,roi_1_day,roi_3_months,roi_1_year\n')
             for row in all_clean_users:
                 writer.writerow(row)
-main()
+
+
+tester()
