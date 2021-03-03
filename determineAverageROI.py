@@ -201,15 +201,70 @@ def parse_3_user_groups(users):
         for s in stat_tup:
             uniform_user.append(s)
         uniform_user = tuple(uniform_user)
-        print(uniform_user)
+        #print(uniform_user)
         uniform_user_list.append(uniform_user)
     return uniform_user_list
 
+
+
+def parse_4_user_groups(users):
+    """
+    These users have a method but do not have compute. 
+
+    In the future there might be soem users with compute but no method. Right now there are none.
+
+    I spot checked several users with cleaned_scores.text at N=3 all were right
+
+    """
+    uniform_user_list =[]
+    for a in users:
+        mode = a[2] # defaults
+        compute ='No Compute' # defaults
+        rank =a[0]
+        name =a[1]
+        stats = a[3]
+        stat_tup = parse_stats(stats)
+        uniform_user = [int(rank[0]), name[0], mode[0], compute]
+        for s in stat_tup:
+            uniform_user.append(s)
+        uniform_user = tuple(uniform_user)
+        #print(uniform_user)
+        uniform_user_list.append(uniform_user)
+    return uniform_user_list
+
+def parse_5_user_groups(users):
+    uniform_user_list =[]
+    for a in users:
+        mode = a[2] # defaults
+        compute =a[3] # defaults
+        rank =a[0]
+        name =a[1]
+        stats = a[4]
+        stat_tup = parse_stats(stats)
+        uniform_user = [int(rank[0]), name[0], mode[0], compute[0]]
+        for s in stat_tup:
+            uniform_user.append(s)
+        uniform_user = tuple(uniform_user)
+        #print(uniform_user)
+        uniform_user_list.append(uniform_user)
+    return uniform_user_list
+
+
+
 def main():
     # scores.txt was gathered on 3/2/2021
-
+    
     with open('cleaned_scores.txt','r') as fin:
-        users = group_users(fin.readlines())
-        cleaned_3_group = parse_3_user_groups(users[1])
+        user_groups = group_users(fin.readlines())
+        cleaned_3_group = parse_3_user_groups(user_groups[1])
+        cleaned_4_group = parse_4_user_groups(user_groups[2])
+        # some users like NUMERARK have ½MMC this shows up as 'Â½MMC'. Cast this this to somethign more intutive
+        # right now it is good engough to just keep that as is
+        cleaned_5_group = parse_5_user_groups(user_groups[3])
+        all_clean_users = cleaned_3_group
+        all_clean_users.extend(cleaned_4_group)
+        cleaned_5_group.extend(cleaned_5_group)
+        print(len(all_clean_users))
+
        
 main()
