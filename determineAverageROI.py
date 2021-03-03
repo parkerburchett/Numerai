@@ -1,4 +1,5 @@
-
+import numpy as np
+import pandas as pd
 # I think it makes the most sense to cast this in to a relational database for some basic quries.
 # Cast as .csv file
 #user[0] is rank
@@ -74,6 +75,14 @@ def parse_user_from_raw_lines(record):
 
 def group_users(lines):
     """
+    note this excludes the last user in the list. here it excludes 
+    
+    4861
+    NEKOG_COMP
+    -0.0998	-0.0998	-0.0997	
+
+    You might want to add this manually later	
+
     lines in all the lines in cleaned_scores.txt
     you take this and return a list of tuples where each tuple is a unique user. 
     """
@@ -82,9 +91,11 @@ def group_users(lines):
     lines_with_rank =[0]
     user_tupules =[]
     start_index =0
-    for line in lines[1:300]:
+    for line in lines[1:]:
         try:
             rank = int(line)
+            if rank ==10001110101: # you are just excluding teh only user with a weird name
+                raise Exception
             counter+=1
             lines_with_rank.append(counter)
         except:
@@ -98,14 +109,39 @@ def group_users(lines):
         user_tupules.append(a)
     
     lengths = [len(a) for a in user_tupules]
+    len_2_users = [l for l in user_tupules if len(l) ==2]
+
+    # the only element in len_2 users is '10001110101'
+    # [[['10001110101'], ['-0.096', '-0.0961', '-0.0962']]]
+    len_3_users = [l for l in user_tupules if len(l) ==3]
+    len_4_users = [l for l in user_tupules if len(l) ==4]
+    len_5_users = [l for l in user_tupules if len(l) ==5]
+    len_6_users = [l for l in user_tupules if len(l) ==6]
+
+    user_groups = [len_2_users, len_3_users ,len_4_users ,len_5_users ,len_6_users ]
+    for group in user_groups:
+        print(len(group))
     # You should short this by lengths
 
-    return user_tupules
+    print(user_tupules[-1])
+    print(len_2_users)
+    return user_groups
+
+def parse_3_user_groups(users):
+    lengths =[len(a) for a in users]
+
+
+        
+
+
+
+
 
 def main():
     # scores was gathered on 3/2/2021
 
     with open('cleaned_scores.txt','r') as fin:
         users = group_users(fin.readlines())
+        cleaned_3_group = parse_3_user_groups
        
 main()
