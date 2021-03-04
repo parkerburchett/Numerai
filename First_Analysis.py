@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+import intro_numerai_api as local_api
 
 
 # I look at the csv file I created eariler to look at some regression and basic exploritaiy stats on the profitablity and other stats for the leader board. 
@@ -11,47 +12,36 @@ import matplotlib.pyplot as plt
 # I dont' have a clean way of getting the data right now I just copy and past it to notepad. 
 
 
-def create_scatter_plot(df):
+def create_scatter_plot(df, x_name='rolling_score_rep', y_name ='nmrStaked'):
     """
     Scatter Plot of Corrilation vs Stake
 
     """
-    x = df[' corr']
-    y = df[' stake']
+    x = df[x_name]
+    y = df[y_name]
     plt.scatter(x,y, s=.5)
-    plt.xlabel('Corr')
-    plt.ylabel('Stake')
+    plt.xlabel(x_name)
+    plt.ylabel(y_name)
     plt.show()
 
 
-def create_histogram(df, col='corr', bins =10):
-    #non_zero_indexes = df[col] is not 0.0
-
-    x = df[df[col]!=0.0][col]
+def create_histogram(df, col='rolling_score_rep', bins =10):
+    x=df[col]
     plt.hist(x,bins)
     plt.xlabel(col)
     plt.show()
-
 
 
 def custom_describe(df, col):
     percents = [.1,.2,.3,.4,.5,.6,.7,.8,.9]
     print(df[col].describe(percentiles=percents))
 
+
 def main():
-    df = pd.read_csv(r'C:\Users\parke\Documents\GitHub\Numerai\finished_cleaned_users.csv')
-
-    #print(df.head())
-    print(df.columns)
-    #create_histogram(df, 'roi_1_day', bins =100)
-
-    day = df['roi_1_day']
-    # I have lost all of my negative values for ROI. 
+    df = local_api.load_leaderboard()
+    pd.set_option("display.max_rows", None, "display.max_columns", None)
+    create_scatter_plot(df)
     
-
-    # custom_describe(df, 'corr')
-    # custom_describe(df,'roi_1_day')
-    #print(df['roi_1_day'].describe())
     
 
 main()

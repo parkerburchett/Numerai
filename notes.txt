@@ -4,10 +4,6 @@ https://numerapi.readthedocs.io/en/latest/api/numerapi.html#module-numerapi.nume
 daily_user_performances(username)
 
 
-# you already have a list of usernames.
+daily_user_performances( quantyquant)
 
-
-I am so silly.
-
-Just use get leader_board = 5000
-
+return a list of all the entires. I think (need to verify) this user has 325 models they submitted
