@@ -72,6 +72,12 @@ def get_all_user_names():
     return usernames
 
 
+
+
+
+# use https://numerapi.readthedocs.io/en/latest/api/numerapi.html#module-numerapi.numerapi
+
+
 def get_all_user_details(usernames):
     """
     Ping the API with public_user_profile() and daily_user_performances()
@@ -92,29 +98,19 @@ def get_all_user_details(usernames):
 
     # untested
     # for some readon daily_user_performances is always in a factor of 5. I dont know why that is so 
-    for name in usernames[:1]:
+    for name in usernames:
         profile = napi.public_user_profile(name) # this is a dict
-
+        profile_df = pd.DataFrame(profile)
+        select_profile = profile_df[['username', 'totalStake','startDate']].drop_duplicates().to_dict()
         daily_performace = napi.daily_user_performances(name)
-        print(daily_performace[0].keys())
-        rolling_scores=[i['rolling_score_rep'] for i in daily_performace] 
-        final_corrilations = [i['finalCorrelation'] for i in daily_performace] 
-        reputation_scores = [i['reputation'] for i in daily_performace] 
-
-        daily_df = pd.DataFrame(daily_performace)
-
-        averages = daily_df.mean(axis=0, numeric_only=True)
-        medians = daily_df.median(axis=0, numeric_only=True)
-        print('Averages\n', averages.head(10), '\n')
-        print('medians\n', medians.head(10))
-        # interestingly it looks like the rolling scores are loosly sorted. Where higher values are nearer to index 0 while worse scores are close to - values. 
-         
-  
-        #print(name, len(daily_performace), len(daily_performace)%15, len(daily_performace)% 5)
-
-
+        daily_performace_df = pd.DataFrame(daily_performace)
+        print(daily_performace_df.columns)
+        # I need to get mmc, and fnc here too.
+        averages = daily_performace_df.mean(axis=0, numeric_only=True).to_dict()
+        merged = select_profile | averages
+        user_details.append(merged)
     details = pd.DataFrame(user_details)
-    return 'zser'
+    return details
         
 
 def main():
@@ -124,6 +120,23 @@ def main():
 
     #print(details.head())
 
+# learn how to interact with graph ql api. 
 
 
-main()
+
+def get_submission_results():
+    usernames = get_all_user_names().to_list()
+
+    a_user = usernames[0] 
+    print(a_user)
+    api = numerapi.SignalsAPI()
+    daily_performances = api.daily_user_performances(username=a_user)
+    print(type(daily_performances))
+    print(len(daily_performances))
+    print(daily_performances[1])
+
+
+
+
+
+get_submission_results()
