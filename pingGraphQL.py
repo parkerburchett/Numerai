@@ -23,6 +23,8 @@ def custom_ping_leaderboad():
         username
         nmrStaked
         returns # this is the 1d roi. 2.2 is 2.2 percent. It does not *100
+        return_52Weeks
+        return_13Weeks
         rank
 	    }  
     }"""
