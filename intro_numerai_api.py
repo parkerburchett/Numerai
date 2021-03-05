@@ -125,18 +125,22 @@ def main():
 
 
 def get_submission_results():
-    usernames = get_all_user_names().to_list()
+    # usernames = get_all_user_names().to_list()
 
-    a_user = usernames[0] 
-    print(a_user)
-    api = numerapi.SignalsAPI()
-    daily_performances = api.daily_user_performances(username=a_user)
-    print(type(daily_performances))
-    print(len(daily_performances))
-    print(daily_performances[1])
+    # a_user = usernames[0] 
+    # print(a_user)
+    # api = numerapi.SignalsAPI()
+    # daily_performances = api.daily_user_performances(username=a_user)
+    # print(type(daily_performances))
+    # print(len(daily_performances))
+    # print(daily_performances[1])
+
+    api.raw_query(False, 'asdf')
 
 
 
+# you are going to need to write your own custom Graph QL quries. 
 
+# don't know how to do that yet
 
 get_submission_results()
