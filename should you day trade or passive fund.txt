@@ -28,3 +28,15 @@ only “trade to learn” if aggregate speculator profits are positive. In fact,
 data for the Taiwan market, the aggregate performance of day traders net of fees is
 negative in each of the 15 years that we study. A profit-maximizing risk-averse (or riskneutral) Bayesian investor would not enter a market if her expected lifetime profits were
 negative." (2)
+
+
+"The one
+exception to this generalization being Barber, Lee, Liu, and Odean (2010) who identify a
+small subset of day traders (less than 1% of the day trading population) predictably earn
+profits." (6)
+
+
+"In this section,
+we argue that rational learning does not explain behavior of the large population of
+speculative investors for three reasons: aggregate performance is negative, experienced
+speculators lose money, and unprofitable speculators persist."(12)
