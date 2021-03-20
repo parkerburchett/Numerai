@@ -1,17 +1,15 @@
-import csv
 import pandas as pd
 import matplotlib.pyplot as plt
+import numerapi
+import inspect
 
-preds = pd.read_csv('myPredictions.csv')
 
-def lookatpreds(preds):
-
+def look_at_my_predictions():
+    preds = pd.read_csv('myPredictions.csv')
     print(preds.count())
     print(preds.prediction.describe())
-
     plt.hist(preds.prediction)
     plt.show()
 
-example_preds = pd.read_csv('example_predictions.csv')
-
-lookatpreds(preds)
+lines = inspect.getsource(numerapi)
+print(lines)
