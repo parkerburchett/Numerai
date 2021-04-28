@@ -1,0 +1,5 @@
+You want to use a decorator for custom loss functions
+https://realpython.com/primer-on-python-decorators/#:~:text=By%20definition%2C%20a%20decorator%20is,examples%20from%20this%20article%20here.
+
+You should move all the code out of expore LGMB Space for current roudn into several python modules. 
+figure out how to load a private github repo into google colab
