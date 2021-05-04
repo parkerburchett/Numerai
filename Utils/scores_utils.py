@@ -190,71 +190,107 @@ def compute_val_mmc(valid_df : pd.DataFrame):
     
     return val_mmc_mean, val_mmc_std, corr_plus_mmc_sharpe, corr_with_example_preds
 
-
-# this is the main method. The rest are just called interanlly. 
-def score_summary(valid_df : pd.DataFrame):
-    score_dict = {}
-
-    try:
-        score_dict['correlation'] = compute_val_corr(valid_df)
-    except:
-        print('ERR: computing correlation')
-    try:
-        score_dict['corr_sharpe'], score_dict['corr_mean'], score_dict['corr_std'], score_dict['max_drawdown'] = compute_val_sharpe(valid_df)
-    except:
-        print('ERR: computing sharpe')
-    try:
-        score_dict['feature_exposure'], score_dict['max_feature_exposure'] = compute_val_feature_exposure(valid_df)
-    except:
-        print('ERR: computing feature exposure')
-    # try:
-    #     score_dict['mmc_mean'], score_dict['mmc_std'], score_dict['corr_mmc_sharpe'], score_dict['corr_with_example_xgb'] = compute_val_mmc(valid_df)
-    # except:
-    #     print('ERR: computing MMC')
-    
-    return score_dict
-
 class ScoreCalculator:
     """
-        This is an object that holds the methods to compute various scores for evaluating how a model performs on unseen Test Data
+        Calcuating various metrics on the relationship between your predictions, example predictions and validation dat
 
-        You need to pass it the current round VALIDATION_DATA at construction
-
+        Based on this notebook: example.py of the numerai pa
     """
-    def __init__(self, VALIDATION_DATA):
-        self.VALIDATION_DATA = VALIDATION_DATA # a DataFrame of id, era, features1 ....featurnN, Target
-        self.FEATURES = [column_name for column_name in VALIDATION_DATA.columns if column_name.contains('feature')]
-        self.EXAMPLE_PRED = None # this is the default preditions for this round # you should ping the numerai
+    def __init__(self,validation_data) -> ScoreCalculator:
+        """
+
+
+
+        """
     
-    def ping_example_predictions(self):
+        self.validation_data = ping_validation_data() 
+        self.rank_normalized_validation_targets = rank_order_transfrom_columns(df=self.validation_data, col_name='target')['target'] 
+        self.feature_col_names = [column_name for column_name in self.validation_data.columns if column_name.contains('feature')]
+        self.example_predictions = ping_example_predictions()
+        self.rank_normalized_example_predictions = rank_order_transfrom_columns(df=self.example_predictions, col_name='prediction')['prediction']
+    
+    
+    def ping_validation_data(self):
         """
-            Get the example predictions for the current round from Numerai.
-            stub
+        Ping Numerai to create get the live tournament data and extact all the validation data.
+
+        Adapted from : https://www.kaggle.com/code1110/numerai-tournament | May 3 2021
         """
-        return 0
+        tournament_data_url = 'https://numerai-public-datasets.s3-us-west-2.amazonaws.com/latest_numerai_tournament_data.csv.xz'
+        tournament_df = pd.read_csv(tournament_data_url)
+        valid_df = tournament_df[tournament_df["data_type"] == "validation"].reset_index(drop = True)
+        feature_cols = valid_df.columns[valid_df.columns.str.startswith('feature')]
 
-    def create_default_score_dict(self, predictions: pd.Series)-> dict:
+        map_floats_to_ints = {0.0 : 0, 0.25 : 1, 0.5 : 2, 0.75 : 3, 1.0 : 4}
+        for col in feature_cols:
+            valid_df[col] = valid_df[col].map(map_floats_to_ints).astype(np.uint8) # reduce space costs by casting features as ints
+            
+        valid_df["era"] = valid_df["era"].apply(lambda x: int(x[3:])) # strip the word 'era' from the era column
+        valid_df.drop(columns=["data_type"], inplace=True)
+        return valid_df
+
+
+    def ping_example_predictions(self)-> pd.DataFrame:
         """
-            Return a dictionary object that corrosponds to the "diagnostics" tab on numerai 
+            Create a dataframe of Id, Prediction that are the default predictions from the example model.
+            
+            Used for corr with example predictions and the independence to a normal  out of the box xbgoost regressor
+            id	                prediction
+            n0003aa52cab36c2	0.49
+            n000920ed083903f	0.49
+            n0038e640522c4a6	0.53
+            ...                 ...
         """
+        example_predictions_url = "https://numerai-public-datasets.s3-us-west-2.amazonaws.com/latest_numerai_example_predictions_data.csv.xz"
+        return pd.read_csv(example_predictions_url, index_col=0)
 
-        score_dict = {}
+    # untested
+    def richards_dependence(self, df, target_col, era_col, prediction_col) -> float: 
+        """
+            Measures the independendence of prediction with the targets
+            
+            Currently unused 
+            example call:
+            richards_dependence(df, 'target', 'era', 'prediction'))
+            Source: Numerai Forumn user:richai @ https://forum.numer.ai/t/independence-and-sharpe/2560 | May 3 ,2021
+        """  
+        scores_by_era = df.groupby(era_col).apply(lambda d: d[[prediction_col, target_col]].corr()[target_col][0])
+            
+        # these need to be ranked within era so "error" makes sense
+        df[prediction_col] = df.groupby(era_col)[prediction_col].rank(pct=True)
+        df[target_col] = df.groupby(era_col)[target_col].rank(pct=True)
 
-        try:
-            score_dict['correlation'] = compute_val_corr(valid_df)
-        except:
-            print('ERR: computing correlation')
-        try:
-            score_dict['corr_sharpe'], score_dict['corr_mean'], score_dict['corr_std'], score_dict['max_drawdown'] = compute_val_sharpe(valid_df)
-        except:
-            print('ERR: computing sharpe')
-        try:
-            score_dict['feature_exposure'], score_dict['max_feature_exposure'] = compute_val_feature_exposure(valid_df)
-        except:
-            print('ERR: computing feature exposure')
-        # try:
-        #     score_dict['mmc_mean'], score_dict['mmc_std'], score_dict['corr_mmc_sharpe'], score_dict['corr_with_example_xgb'] = compute_val_mmc(valid_df)
-        # except:
-        #     print('ERR: computing MMC')
+        df["era_score"] = df[era_col].map(scores_by_era)
 
-        return score_dict
+        df["error"] = (df[target_col] - df[prediction_col]) ** 2
+        df["1-error"] = 1 - df["error"]
+
+        # Returns the correlation of the 1-error with the era_score
+        # i.e. how dependent/correlated each prediction is with its era_score
+        return df[["1-error", "era_score"]].corr()["era_score"][0]
+
+
+    def rank_noramalize_series(self, col:pd.Series)-> pd.Series:
+        """
+            Compute the rank ordering of col. Scale each element of col between 0 and 1 based on their relative size
+            Returns: a pd.Series
+        """ 
+        scaled_col = (col.rank(method="first") - 0.5) / len(col)
+        scaled_col.index = col.index
+        return scaled_col
+
+
+    def rank_order_transfrom_columns(self, df: pd.DataFrame, col_name: str)-> pd.DataFrame:
+        """
+            Returns a copy of df with df[col_name], rank normalized
+        """
+        df_copy = df.copy()
+        df_copy['prediction'] = rank_noramalize_series(df_copy['prediction'])
+        return df_df_copy
+
+
+ 
+
+
+# you pass this Object a model_prediction_df
+# that has 
