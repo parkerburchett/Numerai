@@ -1,16 +1,22 @@
 import pandas as pd
 import numpy as np
 
-
 class ScoreCalculator:
     """
         Calcuating various metrics on the relationship between your predictions, example predictions and validation data.
 
 
+        Call compute_numerai_diagnostics(a pd.Series of your predictions on the validation data)
+        
+
+        Add method to compute more differnent diagonistcs
+        
+        Currently not throughly tested.
+
 
         Primarily based on: example.py 
     """
-    def __init__(self,validation_data) -> ScoreCalculator:
+    def __init__(self,validation_data):
         """
 
 
@@ -60,7 +66,7 @@ class ScoreCalculator:
         return pd.read_csv(example_predictions_url, index_col=0)
         
 
-    # untested
+    # suspect
     def richards_dependence(self, df, target_col, era_col, prediction_col) -> float: 
         """
             Measures the independendence of prediction with the targets
@@ -131,7 +137,7 @@ class ScoreCalculator:
         return pred_valid_df_corr.std()
 
 
-    def compute_validation_sharpe(self, pred:pd.Series ):
+    def compute_validation_sharpe(self, pred:pd.Series )-> float:
         """
             Computes your sharpe corr socre on each era 
             sharpe = average corr by era / std dev of corr by era 
@@ -179,7 +185,7 @@ class ScoreCalculator:
         return max_feature_exposure
 
 
-    def compute_feature_neutral_mean(self, pred:pd.Series)-> float:
+    def compute_feature_neutral_corr_mean(self, pred:pd.Series)-> float:
         """
             The mean of your per era correlation after your predictions have been neutralized to all the features
             Copied from Numerai's example_model.py
@@ -196,7 +202,7 @@ class ScoreCalculator:
             lambda x: self._compute_corr(rank_noramalize_series(x["neutral_sub"]), rank_noramalize_series(x['target']))).mean()
         return np.mean(scores)
 
-    #untested
+    #suspect
     def neutralize(self, df, columns, by, proportion=1.0):
         """
             Copied as is from example_model.py
@@ -213,12 +219,12 @@ class ScoreCalculator:
             np.linalg.pinv(exposures).dot(scores))
         return scores / scores.std()
     
-    #untested
-    def compute_mmc_stats(self, pred:pd.Series) -> Tuple:
+    #suspect
+    def compute_mmc_stats(self, pred:pd.Series) -> tuple:
         """
             Using example predictions as an estimate for the meta model, compute mmc stats
             Copied from example_model.py
-            returns val_mmc_mean, corr_plus_mmc_sharpe, corr_plus_mmc_sharpe_diff 
+            returns val_mmc_mean, corr_plus_mmc_sharpe, 
 
             Not refractored. Copied as is. Only variable and function names are changed
 
@@ -241,16 +247,16 @@ class ScoreCalculator:
         corr_plus_mmcs = [c + m for c, m in zip(corr_scores, mmc_scores)]
         corr_plus_mmc_sharpe = np.mean(corr_plus_mmcs) / np.std(corr_plus_mmcs)
         corr_plus_mmc_mean = np.mean(corr_plus_mmcs)
-        corr_plus_mmc_sharpe_diff = corr_plus_mmc_sharpe - validation_sharpe
+        #corr_plus_mmc_sharpe_diff = corr_plus_mmc_sharpe - validation_sharpe
 
-        print(
-            f"MMC Mean: {val_mmc_mean}\n"
-            f"Corr Plus MMC Sharpe:{corr_plus_mmc_sharpe}\n"
-            f"Corr Plus MMC Diff:{corr_plus_mmc_sharpe_diff}"
-        )
-        return  val_mmc_mean, corr_plus_mmc_sharpe, corr_plus_mmc_sharpe_diff
+        # print(
+        #     f"MMC Mean: {val_mmc_mean}\n"
+        #     f"Corr Plus MMC Sharpe:{corr_plus_mmc_sharpe}\n"
+        #     f"Corr Plus MMC Diff:{corr_plus_mmc_sharpe_diff}"
+        # )
+        return  val_mmc_mean, corr_plus_mmc_sharpe, 
 
-    #untested
+    #suspect
     def neutralize_series(self, series, by, proportion=1.0):
         """
             Copied from example_model.py
@@ -270,17 +276,17 @@ class ScoreCalculator:
         neutralized = pd.Series(corrected_scores.ravel(), index=series.index)
         return neutralized
 
-
+    #suspect
     def compute_corr_with_example_preds(self, pred:pd.Series) -> float:
         """
             Returns the rank corrilation of your predictions (pred) with the example predictions
         """
-        ranked_example_preds = self.rank_noramalize_series(self.example_predictions)
+        ranked_example_preds = self.rank_noramalize_series(self.example_predictions) # you need to subset by only the same id rows in ranked_example_preds
         ranked_user_preds = self.rank_noramalize_series(pred)
         return self._compute_corr(ranked_example_preds, ranked_user_preds)
     
 
-    def merge_pred_valid_df(self,pred: pd.Series):
+    def merge_pred_valid_df(self,pred: pd.Series) -> pd.DataFrame:
         """
             Add your predictions to self.validation_data in order to make calcuating the answers more efficnet 
         """
@@ -305,3 +311,27 @@ class ScoreCalculator:
             era_corr_list.append((era,era_corr))
         
         return era_corr_list
+
+
+    def compute_numerai_diagnostics(self, pred: pd.Series) -> pd.DataFrame:
+        """
+            Returns a pd.DataFrame that mimics the numerai diagnostics when you submit a model 
+        """
+        diagnostics_df = pd.DataFrame()
+
+        diagnostics_df['valid_sharpe'] = [self.compute_validation_sharpe(pred)]
+        diagnostics_df['valid_corr'] = [self.compute_validation_corr(pred)]
+        diagnostics_df['valid_FNC'] = [self.compute_feature_neutral_corr_mean(pred)]
+
+        diagnostics_df['valid_SD'] = [self.compute_validation_std(pred)]
+        diagnostics_df['feature_exposure'] = [self.compute_feature_exposure(pred)]
+        diagnostics_df['max_drawdown'] = [self.compute_max_drawdown(pred)]
+
+        val_mmc_mean, corr_plus_mmc_sharpe = self.compute_mmc_stats(pred) # suspect
+
+        diagnostics_df['corr_plus_MMC_sharpe'] = [corr_plus_mmc_sharpe]
+        diagnostics_df['MMC_mean '] = [val_mmc_mean]
+        # this is broken you need to only look at the same id rows in example preds and
+        diagnostics_df['corr_with_example_preds '] = [self.compute_corr_with_example_preds(pred)]
+        return diagnostics_df
+
