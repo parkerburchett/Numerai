@@ -9,7 +9,7 @@ from pathlib import Path
 
 import pandas as pd
 import numpy as np
-from xgboost import XGBRegressor
+#from xgboost import XGBRegressor
 
 TOURNAMENT_NAME = "kazutsugi"
 TARGET_NAME = f"target_{TOURNAMENT_NAME}"
