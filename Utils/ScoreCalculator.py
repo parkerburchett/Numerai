@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 
+
 class ScoreCalculator:
     """
         Calcuating various metrics on the relationship between your predictions, example predictions and validation data.
@@ -16,54 +17,47 @@ class ScoreCalculator:
 
         Primarily based on: example.py 
     """
-    def __init__(self,validation_data):
-        """
+    def __init__(self):
+            # called during init
+        def ping_validation_data() -> pd.DataFrame:
+            """
+            Ping Numerai to create get the live tournament data and extact all the validation data.
 
+            Copied from : https://www.kaggle.com/code1110/numerai-tournament | May 3, 2021
+            """
+            tournament_data_url = 'https://numerai-public-datasets.s3-us-west-2.amazonaws.com/latest_numerai_tournament_data.csv.xz'
+            tournament_df = pd.read_csv(tournament_data_url)
+            valid_df = tournament_df[tournament_df["data_type"] == "validation"].reset_index(drop = True)
+            feature_cols = valid_df.columns[valid_df.columns.str.startswith('feature')]
 
+            map_floats_to_ints = {0.0 : 0, 0.25 : 1, 0.5 : 2, 0.75 : 3, 1.0 : 4}
+            for col in feature_cols:
+                valid_df[col] = valid_df[col].map(map_floats_to_ints).astype(np.uint8) # reduce space costs by casting features as ints
+                
+            valid_df["era"] = valid_df["era"].apply(lambda x: int(x[3:])) # strip the word 'era' from the era column
+            valid_df.drop(columns=["data_type"], inplace=True)
+            return valid_df
 
-        """
+        # called during init # broken You need to specify that this is example preds over the entire df
+        def ping_example_predictions()-> pd.DataFrame:
+            """
+                Create a dataframe of Id, Prediction that are the default predictions from the example model.
+                Used for corr with example predictions and the independence to a normal  out of the box xbgoost regressor
+                id	                prediction
+                n0003aa52cab36c2	0.49
+                n000920ed083903f	0.49
+                n0038e640522c4a6	0.53
+            """
+            example_predictions_url = "https://numerai-public-datasets.s3-us-west-2.amazonaws.com/latest_numerai_example_predictions_data.csv.xz"
+            return pd.read_csv(example_predictions_url, index_col=0)
+
         self.validation_data = ping_validation_data() 
         self._rank_normalized_validation_targets = rank_order_transfrom_columns(df=self.validation_data, col_name='target')['target'] 
         self._feature_col_names = [column_name for column_name in self.validation_data.columns if column_name.contains('feature')]
         self.example_predictions = ping_example_predictions()
         self._rank_normalized_example_predictions = rank_order_transfrom_columns(df=self.example_predictions, col_name='prediction')['prediction']
     
-    # called during init
-    def ping_validation_data(self) -> pd.DataFrame:
-        """
-        Ping Numerai to create get the live tournament data and extact all the validation data.
 
-        Copied from : https://www.kaggle.com/code1110/numerai-tournament | May 3, 2021
-        """
-        tournament_data_url = 'https://numerai-public-datasets.s3-us-west-2.amazonaws.com/latest_numerai_tournament_data.csv.xz'
-        tournament_df = pd.read_csv(tournament_data_url)
-        valid_df = tournament_df[tournament_df["data_type"] == "validation"].reset_index(drop = True)
-        feature_cols = valid_df.columns[valid_df.columns.str.startswith('feature')]
-
-        map_floats_to_ints = {0.0 : 0, 0.25 : 1, 0.5 : 2, 0.75 : 3, 1.0 : 4}
-        for col in feature_cols:
-            valid_df[col] = valid_df[col].map(map_floats_to_ints).astype(np.uint8) # reduce space costs by casting features as ints
-            
-        valid_df["era"] = valid_df["era"].apply(lambda x: int(x[3:])) # strip the word 'era' from the era column
-        valid_df.drop(columns=["data_type"], inplace=True)
-        return valid_df
-
-    # called during init # broken You need to specify that this is example preds over the entire df
-    def ping_example_predictions(self)-> pd.DataFrame:
-        """
-            Create a dataframe of Id, Prediction that are the default predictions from the example model.
-            
-            Used for corr with example predictions and the independence to a normal  out of the box xbgoost regressor
-            id	                prediction
-            n0003aa52cab36c2	0.49
-            n000920ed083903f	0.49
-            n0038e640522c4a6	0.53
-            ...                 ...
-
-            # 
-        """
-        example_predictions_url = "https://numerai-public-datasets.s3-us-west-2.amazonaws.com/latest_numerai_example_predictions_data.csv.xz"
-        return pd.read_csv(example_predictions_url, index_col=0)
         
 
     # suspect
@@ -312,10 +306,14 @@ class ScoreCalculator:
         
         return era_corr_list
 
+    # this is the main method that you call on your validation predictions
+    # my_score_calculator = ScoreCalculator()
+    # scores =my_score_calculator.compute_numerai_diagnostics(my_model.predict(validation_data[features]))
+    # print(scores)
 
     def compute_numerai_diagnostics(self, pred: pd.Series) -> pd.DataFrame:
         """
-            Returns a pd.DataFrame that mimics the numerai diagnostics when you submit a model 
+            Returns a pd.DataFrame that mimics the numerai diagnostics when you submit predictions
         """
         diagnostics_df = pd.DataFrame()
 
