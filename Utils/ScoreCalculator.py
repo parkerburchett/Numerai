@@ -51,9 +51,28 @@ class ScoreCalculator:
             example_predictions_url = "https://numerai-public-datasets.s3-us-west-2.amazonaws.com/latest_numerai_example_predictions_data.csv.xz"
             return pd.read_csv(example_predictions_url, index_col=0)
 
+        def rank_noramalize_series(col:pd.Series)-> pd.Series:
+            """
+                Compute the rank ordering of col. Scale each element of col between 0 and 1 based on their relative size
+                Returns: a pd.Series
+            """ 
+            scaled_col = (col.rank(method="first") - 0.5) / len(col)
+            scaled_col.index = col.index
+            return scaled_col
+            
+        def rank_order_transfrom_columns(df: pd.DataFrame, col_name: str)-> pd.DataFrame:
+            """
+                Returns a copy of df with df[col_name], rank normalized between [0,1]
+            """
+            df_copy = df.copy()
+            df_copy[col_name] = rank_noramalize_series(df_copy[col_name])
+            return df_copy
+
+        
+
         self.validation_data = ping_validation_data() 
         self._rank_normalized_validation_targets = rank_order_transfrom_columns(df=self.validation_data, col_name='target')['target'] 
-        self._feature_col_names = [column_name for column_name in self.validation_data.columns if column_name.contains('feature')]
+        self._feature_col_names = [column_name for column_name in self.validation_data.columns if 'feature' in column_name]
         self.example_predictions = ping_example_predictions()
         self._rank_normalized_example_predictions = rank_order_transfrom_columns(df=self.example_predictions, col_name='prediction')['prediction']
     
@@ -95,16 +114,7 @@ class ScoreCalculator:
         scaled_col.index = col.index
         return scaled_col
 
-    # unused
-    def rank_order_transfrom_columns(self, df: pd.DataFrame, col_name: str)-> pd.DataFrame:
-        """
-            Returns a copy of df with df[col_name], rank normalized between [0,1]
-        """
-        df_copy = df.copy()
-        df_copy['prediction'] = rank_noramalize_series(df_copy['prediction'])
-        return df_df_copy
-
-
+ 
     def compute_validation_corr(self, pred: pd.Series)-> float:
         """
             pred: your predictions on the validation data.
