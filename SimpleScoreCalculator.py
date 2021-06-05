@@ -358,12 +358,13 @@ class NumeraiDataLoader:
             import traceback
             for col in feature_cols:
                 valid_df[col] = valid_df[col].map(map_floats_to_ints).astype(np.uint8) # reduce space costs by casting features as ints
+                
             try:              
                 valid_df["era"] = valid_df["era"].apply(lambda x: int(x[3:])) # strip the word 'era' from the era column and cast as an int
             except:
                 traceback.print_exc()
 
-            valid_df.drop(columns=["data_type"], inplace=True)
+            valid_df.drop(columns=["data_type",'target'], inplace=True)
             valid_df.set_index('id', inplace=True)
 
             return valid_df
@@ -371,16 +372,24 @@ class NumeraiDataLoader:
 
     def ping_example_predictions(self)-> pd.DataFrame:
       """
-          Create a dataframe of id, Prediction, rank_prediction
-          
-          Where id, is the id column in tournament_data.csv prediction is the numerai provided example model, and rank_prediction is the normalized prediction target
+        Create a dataframe of id, Prediction, rank_prediction. Run time is ~2 second
+        
+
+        id              : The unique identifier for a row in the tournament data provided by Numerai
+        prediction      : A float (0,1) that the example model predicts for that row. 
+        rank_prediction : 'prediction' after it is rank normalized.
+
+
+
+        Example : 
+
          	                  prediction  rank_prediction
-          id		
-          n0003aa52cab36c2	0.49	0.097334
-          n000920ed083903f	0.49	0.097335
-          n0038e640522c4a6	0.53	0.969455
-          n004ac94a87dc54b	0.51	0.656894
-          n0052fe97ea0c05f	0.50	0.332613
+        id		
+        n0003aa52cab36c2	0.49	0.097334
+        n000920ed083903f	0.49	0.097335
+        n0038e640522c4a6	0.53	0.969455
+        n004ac94a87dc54b	0.51	0.656894
+        n0052fe97ea0c05f	0.50	0.332613
       """
       example_predictions_url = "https://numerai-public-datasets.s3-us-west-2.amazonaws.com/latest_numerai_example_predictions_data.csv.xz"
       example_preds =  pd.read_csv(example_predictions_url, index_col=0) # defaults the index to be the 0th column
@@ -395,7 +404,7 @@ class NumeraiDataLoader:
         """
         training_data_url = 'https://numerai-public-datasets.s3-us-west-2.amazonaws.com/latest_numerai_training_data.csv.xz'
         train_df = pd.read_csv(training_data_url)
-        feature_cols = valid_df.columns[train_df.columns.str.startswith('feature')]
+        feature_cols = train_df.columns[train_df.columns.str.startswith('feature')]
 
         map_floats_to_ints = {0.0 : 0, 0.25 : 1, 0.5 : 2, 0.75 : 3, 1.0 : 4}
         for col in feature_cols:
