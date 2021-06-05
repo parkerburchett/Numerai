@@ -314,44 +314,60 @@ class ScoreCalculator:
 
 
 class NumeraiDataLoader:
-  """
-      Pings and cleans the raw data from Numerai
-  """
-  def ping_validation_data(self) -> pd.DataFrame:
+    """
+      Pings and cleans the raw data from Numerai. Each method returns a DataFrame Objecty
+    """
+    def ping_validation_data(self) -> pd.DataFrame:
+        """
+        Ping Numerai to create get the live tournament data and extact all the validation data.
+
+        Adapted from : https://www.kaggle.com/code1110/numerai-tournament | May 3, 2021
+        """
+        tournament_data_url = 'https://numerai-public-datasets.s3-us-west-2.amazonaws.com/latest_numerai_tournament_data.csv.xz'
+        tournament_df = pd.read_csv(tournament_data_url)
+        valid_df = tournament_df[tournament_df["data_type"] == "validation"].reset_index(drop = True)
+        feature_cols = valid_df.columns[valid_df.columns.str.startswith('feature')]
+
+        map_floats_to_ints = {0.0 : 0, 0.25 : 1, 0.5 : 2, 0.75 : 3, 1.0 : 4}
+        for col in feature_cols:
+            valid_df[col] = valid_df[col].map(map_floats_to_ints).astype(np.uint8) # reduce space costs by casting features as ints
+
+        valid_df["era"] = valid_df["era"].apply(lambda x: int(x[3:])) # strip the word 'era' from the era column
+        valid_df.drop(columns=["data_type"], inplace=True)
+
+        total_valid_rows = valid_df.shape[0]
+        valid_df['rank_target'] = valid_df['target'].rank(method='first')- 0.5 / total_valid_rows
+        valid_df.set_index('id', inplace=True)
+
+        return valid_df
+
+
+    def ping_tournament_data(self) -> pd.DataFrame:
             """
-            Ping Numerai to create get the live tournament data and extact all the validation data.
+            Returns a Dataframe of this round, live tournament data.
 
             Adapted from : https://www.kaggle.com/code1110/numerai-tournament | May 3, 2021
             """
             tournament_data_url = 'https://numerai-public-datasets.s3-us-west-2.amazonaws.com/latest_numerai_tournament_data.csv.xz'
-            tournament_df = pd.read_csv(tournament_data_url)
-            valid_df = tournament_df[tournament_df["data_type"] == "validation"].reset_index(drop = True)
+            valid_df = pd.read_csv(tournament_data_url)
             feature_cols = valid_df.columns[valid_df.columns.str.startswith('feature')]
 
             map_floats_to_ints = {0.0 : 0, 0.25 : 1, 0.5 : 2, 0.75 : 3, 1.0 : 4}
             for col in feature_cols:
                 valid_df[col] = valid_df[col].map(map_floats_to_ints).astype(np.uint8) # reduce space costs by casting features as ints
                 
-            valid_df["era"] = valid_df["era"].apply(lambda x: int(x[3:])) # strip the word 'era' from the era column
+            valid_df["era"] = valid_df["era"].apply(lambda x: int(x[3:])) # strip the word 'era' from the era column and cast as an int
             valid_df.drop(columns=["data_type"], inplace=True)
-
-            total_valid_rows = valid_df.shape[0]
-          
-            valid_df['rank_target'] = valid_df['target'].rank(method='first')- 0.5 / total_valid_rows
-            
-            print('inside of NumeraiDataLoader.ping_validation_data')
-            print('rank target value counts')
-            print(valid_df['rank_target'].value_counts())
-
-            print('target value counts')
-            print(valid_df['target'].value_counts())
             valid_df.set_index('id', inplace=True)
+
             return valid_df
 
-        # called during init # broken You need to specify that this is example preds over the entire df
-  def ping_example_predictions(self)-> pd.DataFrame:
+
+    def ping_example_predictions(self)-> pd.DataFrame:
       """
-          Create a dataframe of Id, Prediction, rank_prediction, where Id, is the id column in tournament_data.csv prediction is the numerai provided example model, and rank_prediction is the normalized prediction target
+          Create a dataframe of id, Prediction, rank_prediction
+          
+          Where id, is the id column in tournament_data.csv prediction is the numerai provided example model, and rank_prediction is the normalized prediction target
          	                  prediction  rank_prediction
           id		
           n0003aa52cab36c2	0.49	0.097334
@@ -365,3 +381,26 @@ class NumeraiDataLoader:
       total_example_prediction_rows = example_preds.shape[0]
       example_preds['rank_example_prediction'] = example_preds['prediction'].rank(method='first') / total_example_prediction_rows
       return example_preds
+
+
+    def ping_training_data(self) -> pd.DataFrame:
+        """
+            Get the live training Data from numerai. Adds a Rank_target column to make the score calc faster.
+        """
+        training_data_url = 'https://numerai-public-datasets.s3-us-west-2.amazonaws.com/latest_numerai_training_data.csv.xz'
+        train_df = pd.read_csv(training_data_url)
+        feature_cols = valid_df.columns[train_df.columns.str.startswith('feature')]
+
+        map_floats_to_ints = {0.0 : 0, 0.25 : 1, 0.5 : 2, 0.75 : 3, 1.0 : 4}
+        for col in feature_cols:
+            train_df[col] = train_df[col].map(map_floats_to_ints).astype(np.uint8) # reduce space costs by casting features as ints
+
+        train_df["era"] = train_df["era"].apply(lambda x: int(x[3:])) # strip the word 'era' from the era column
+        # train_df.drop(columns=["data_type"], inplace=True)
+
+        total_rows = valid_df.shape[0]
+        train_df['rank_target'] = train_df['target'].rank(method='first') - 0.5 / total_rows
+        train_df.set_index('id', inplace=True)
+
+        return train_df
+
