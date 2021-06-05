@@ -344,7 +344,7 @@ class NumeraiDataLoader:
         return valid_df
 
 
-    def ping_tournament_data(self) -> pd.DataFrame:
+    def ping_tournament_data(self) -> pd.DataFrame: # Broken
             """
             Returns a Dataframe of this round, live tournament data.
 
@@ -353,12 +353,16 @@ class NumeraiDataLoader:
             tournament_data_url = 'https://numerai-public-datasets.s3-us-west-2.amazonaws.com/latest_numerai_tournament_data.csv.xz'
             valid_df = pd.read_csv(tournament_data_url)
             feature_cols = valid_df.columns[valid_df.columns.str.startswith('feature')]
-
+            
             map_floats_to_ints = {0.0 : 0, 0.25 : 1, 0.5 : 2, 0.75 : 3, 1.0 : 4}
+            import traceback
             for col in feature_cols:
                 valid_df[col] = valid_df[col].map(map_floats_to_ints).astype(np.uint8) # reduce space costs by casting features as ints
-                
-            valid_df["era"] = valid_df["era"].apply(lambda x: int(x[3:])) # strip the word 'era' from the era column and cast as an int
+            try:              
+                valid_df["era"] = valid_df["era"].apply(lambda x: int(x[3:])) # strip the word 'era' from the era column and cast as an int
+            except:
+                traceback.print_exc()
+
             valid_df.drop(columns=["data_type"], inplace=True)
             valid_df.set_index('id', inplace=True)
 
@@ -400,7 +404,7 @@ class NumeraiDataLoader:
         train_df["era"] = train_df["era"].apply(lambda x: int(x[3:])) # strip the word 'era' from the era column
         # train_df.drop(columns=["data_type"], inplace=True)
 
-        total_rows = valid_df.shape[0]
+        total_rows = train_df.shape[0]
         train_df['rank_target'] = train_df['target'].rank(method='first') / total_rows
         train_df.set_index('id', inplace=True)
 
