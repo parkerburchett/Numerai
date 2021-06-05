@@ -338,7 +338,7 @@ class NumeraiDataLoader:
         valid_df.drop(columns=["data_type"], inplace=True)
 
         total_valid_rows = valid_df.shape[0]
-        valid_df['rank_target'] = valid_df['target'].rank(method='first')- 0.5 / total_valid_rows
+        valid_df['rank_target'] = valid_df['target'].rank(method='first') / total_valid_rows
         valid_df.set_index('id', inplace=True)
 
         return valid_df
