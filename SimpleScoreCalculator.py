@@ -326,7 +326,7 @@ class NumeraiDataLoader:
         Adapted from : https://www.kaggle.com/code1110/numerai-tournament | May 3, 2021
         """
         tournament_data_url = 'https://numerai-public-datasets.s3-us-west-2.amazonaws.com/latest_numerai_tournament_data.csv.xz'
-        tournament_df = pd.read_csv(tournament_data_url)
+        tournament_df = pd.read_csv(tournament_data_url, index_col=0)
         valid_df = tournament_df[tournament_df["data_type"] == "validation"].reset_index(drop = True)
         feature_cols = valid_df.columns[valid_df.columns.str.startswith('feature')]
 
@@ -339,35 +339,35 @@ class NumeraiDataLoader:
 
         total_valid_rows = valid_df.shape[0]
         valid_df['rank_target'] = valid_df['target'].rank(method='first') / total_valid_rows
-        valid_df.set_index('id', inplace=True)
+        # valid_df.set_index('id', inplace=True)
 
         return valid_df
 
 
     def ping_tournament_data(self) -> pd.DataFrame: # Broken
-            """
-            Returns a Dataframe of this round, live tournament data.
+        """
+        Returns a Dataframe of this round, live tournament data.
 
-            Adapted from : https://www.kaggle.com/code1110/numerai-tournament | May 3, 2021
-            """
-            tournament_data_url = 'https://numerai-public-datasets.s3-us-west-2.amazonaws.com/latest_numerai_tournament_data.csv.xz'
-            valid_df = pd.read_csv(tournament_data_url)
-            feature_cols = valid_df.columns[valid_df.columns.str.startswith('feature')]
+        Adapted from : https://www.kaggle.com/code1110/numerai-tournament | May 3, 2021
+        """
+        tournament_data_url = 'https://numerai-public-datasets.s3-us-west-2.amazonaws.com/latest_numerai_tournament_data.csv.xz'
+        valid_df = pd.read_csv(tournament_data_url, index_col=0)
+        feature_cols = valid_df.columns[valid_df.columns.str.startswith('feature')]
+        
+        map_floats_to_ints = {0.0 : 0, 0.25 : 1, 0.5 : 2, 0.75 : 3, 1.0 : 4}
+        import traceback
+        for col in feature_cols:
+            valid_df[col] = valid_df[col].map(map_floats_to_ints).astype(np.uint8) # reduce space costs by casting features as ints
             
-            map_floats_to_ints = {0.0 : 0, 0.25 : 1, 0.5 : 2, 0.75 : 3, 1.0 : 4}
-            import traceback
-            for col in feature_cols:
-                valid_df[col] = valid_df[col].map(map_floats_to_ints).astype(np.uint8) # reduce space costs by casting features as ints
-                
-            try:              
-                valid_df["era"] = valid_df["era"].apply(lambda x: int(x[3:])) # strip the word 'era' from the era column and cast as an int
-            except:
-                traceback.print_exc()
+        try:              
+            valid_df["era"] = valid_df["era"].apply(lambda x: int(x[3:])) # strip the word 'era' from the era column and cast as an int
+        except:
+            traceback.print_exc()
 
-            valid_df.drop(columns=["data_type",'target'], inplace=True)
-            valid_df.set_index('id', inplace=True)
+        valid_df.drop(columns=['data_type','target'], inplace=True)
+        # valid_df.set_index('id', inplace=True)
 
-            return valid_df
+        return valid_df
 
 
     def ping_example_predictions(self)-> pd.DataFrame:
