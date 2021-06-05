@@ -315,7 +315,9 @@ class ScoreCalculator:
 
 class NumeraiDataLoader:
     """
-      Pings and cleans the raw data from Numerai. Each method returns a DataFrame Objecty
+      Pings and cleans the raw data from Numerai. Each method returns a DataFrame that is optimized for saving memory space.
+
+      Much of the code is copy pasted. You can replace fix that later.
     """
     def ping_validation_data(self) -> pd.DataFrame:
         """
@@ -399,7 +401,7 @@ class NumeraiDataLoader:
         # train_df.drop(columns=["data_type"], inplace=True)
 
         total_rows = valid_df.shape[0]
-        train_df['rank_target'] = train_df['target'].rank(method='first') - 0.5 / total_rows
+        train_df['rank_target'] = train_df['target'].rank(method='first') / total_rows
         train_df.set_index('id', inplace=True)
 
         return train_df
