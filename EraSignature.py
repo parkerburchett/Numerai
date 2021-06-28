@@ -63,7 +63,7 @@ class EraToSignature:
       normalized_value_counts_df.sort_index(axis=0, inplace=True) # Every value normalized_value_counts_df is returned with this order
       return normalized_value_counts_df
     else:
-      normalized_value_counts_df = _add_missing_permutes(normalized_value_counts_df)
+      normalized_value_counts_df = self._add_missing_permutes(normalized_value_counts_df)
       return normalized_value_counts_df
 
 
