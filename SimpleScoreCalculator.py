@@ -317,11 +317,12 @@ class NumeraiDataLoader:
     """
       Pings and cleans the raw data from Numerai. Each method returns a DataFrame that is optimized for saving memory space.
 
-      Much of the code is copy pasted. You can replace fix that later.
+      Much of the code is copy pasted. There is a lot of refactoring you can do to improve this method.
     """
     def ping_validation_data(self) -> pd.DataFrame:
         """
         Ping Numerai to create get the live tournament data and extact all the validation data.
+        Runtime ~ 1.5 minutes.
 
         Adapted from : https://www.kaggle.com/code1110/numerai-tournament | May 3, 2021
         """
@@ -346,7 +347,7 @@ class NumeraiDataLoader:
 
     def ping_tournament_data(self) -> pd.DataFrame: # Broken
         """
-        Returns a Dataframe of this round, live tournament data.
+        Returns a Dataframe of this round, live tournament data. Run time ~ 5 minutes
 
         Adapted from : https://www.kaggle.com/code1110/numerai-tournament | May 3, 2021
         """
@@ -373,13 +374,10 @@ class NumeraiDataLoader:
     def ping_example_predictions(self)-> pd.DataFrame:
       """
         Create a dataframe of id, Prediction, rank_prediction. Run time is ~2 second
-        
 
         id              : The unique identifier for a row in the tournament data provided by Numerai
         prediction      : A float (0,1) that the example model predicts for that row. 
         rank_prediction : 'prediction' after it is rank normalized.
-
-
 
         Example : 
 
@@ -401,6 +399,7 @@ class NumeraiDataLoader:
     def ping_training_data(self) -> pd.DataFrame:
         """
             Get the live training Data from numerai. Adds a Rank_target column to make the score calc faster.
+            Runtime  1.5 minutes
         """
         training_data_url = 'https://numerai-public-datasets.s3-us-west-2.amazonaws.com/latest_numerai_training_data.csv.xz'
         train_df = pd.read_csv(training_data_url)
