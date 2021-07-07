@@ -13,7 +13,11 @@ class EraToSignature:
   def __init__(self, ORTHODOX_FEATURE_PAIRS: pd.DataFrame):
     """
       The constructor EraToSignature that stores the ORTHODOX_FEATURE_PAIRS and FEATURE_NAMES. 
-      ORTHODOX_FEATURE_PAIRS: a pd.Dataframe where col f1: is a feature_name and col f2: is a feature name
+      ORTHODOX_FEATURE_PAIRS: a pd.Dataframe where col f1: is a feature_name and col f2: is a feature name.
+
+      Typically this is read from your google drive via:
+      
+        ORTHODOX_FEATURE_PAIRS = pd.read_csv('/content/drive/MyDrive/othodox_feature_pairs.csv')
     """
 
     #{(0, 0), (0, 1), (0, 2), ... (4,3), (4,4)} as a set, is a Constant
