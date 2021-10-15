@@ -28,10 +28,13 @@ def submit_neutralized_predictions(predictions:pd.Series,
   """
   current_round = napi.get_current_round()
 
-  neutralized_predictions = neutralize_predictions_by_features(predictions=predictions,
-                                                               tournament_df=tournament_df,
-                                                               proportion=proportion)
-  
+  if proportion > 0:
+    neutralized_predictions = neutralize_predictions_by_features(predictions=predictions,
+                                                                tournament_df=tournament_df,
+                                                                proportion=proportion)
+  else:
+    neutralized_predictions = predictions
+    
   neutralized_pred_df = pd.DataFrame(index=neutralized_predictions.index,
                                      data=neutralized_predictions.values,
                                      columns= [['prediction']])
