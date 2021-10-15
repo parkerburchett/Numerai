@@ -28,7 +28,7 @@ def submit_neutralized_predictions(predictions:pd.Series,
   """
   current_round = napi.get_current_round()
 
-  neutralized_predictions = neutralize_predictions_by_features(prediction=predictions,
+  neutralized_predictions = neutralize_predictions_by_features(predictions=predictions,
                                                                tournament_df=tournament_df,
                                                                proportion=proportion)
   
