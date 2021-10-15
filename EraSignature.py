@@ -1,6 +1,9 @@
 import pandas as pd
 import numpy as np
 
+# This is broken, and I am not sure why. there are some signatures taht are only a few, 19,21,20 longer than they should be and I dont' know why.
+
+
 class EraToSignature:
   """
       A class that stores the methods to derive a signature from a Era
@@ -63,6 +66,13 @@ class EraToSignature:
     normalized_value_counts_df = era_df[[col1,col2]].value_counts(normalize=True) # this is the dominating time cost.
     # I have not tested if it would be faster to pass this function 2 arrays and do value counts on those.
 
+
+    if normalized_value_counts_df.shape[0]>25:
+      current_era = list(era_df['era'].unique())[0]
+
+      print(normalized_value_counts_df)
+      ValueError(f"You are at{col1} , {col2} in {current_era} and you have a signature that is greater than 25 long")
+
     if normalized_value_counts_df.shape[0] == 25: # early stopping
       normalized_value_counts_df.sort_index(axis=0, inplace=True) # Every value normalized_value_counts_df is returned with this order
       return normalized_value_counts_df
@@ -70,7 +80,7 @@ class EraToSignature:
       normalized_value_counts_df = self._add_missing_permutes(normalized_value_counts_df)
       return normalized_value_counts_df
 
-
+    # Suspect
   def _add_missing_permutes(self, normalized_value_counts_df):
     """ 
       Add zeros in normalized_value_counts_df for missing permutes.
@@ -100,4 +110,5 @@ class EraToSignature:
       ordered_norm_val_counts = self._compute_feature_combination_value_counts(era_df, feature_name1, feature_name2).values
       era_signature.loc[(feature_name1,feature_name2), era_signature.columns] = ordered_norm_val_counts
 
-    return era_signature
+    era_sig_as_array = era_signature.values.flatten().astype(np.float32) # untested
+    return era_sig_as_array
