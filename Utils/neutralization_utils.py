@@ -19,7 +19,8 @@ def submit_neutralized_predictions(predictions:pd.Series,
                                    proportion:float,
                                    model_id:str,
                                    napi: numerapi.numerapi.NumerAPI,
-                                   creds:dict):
+                                   creds:dict,
+                                   predictions_file_name=None):
   """
       Neutralize the `predictions` by all the features in `tournament_df` by `proportion` 
       Then submit the rank normalized predictions to `model_id` with `napi` based on the model_id value in creds
@@ -35,7 +36,8 @@ def submit_neutralized_predictions(predictions:pd.Series,
                                      data=neutralized_predictions.values,
                                      columns= [['prediction']])
   
-  predictions_file_name = f'/content/round_{current_round}_model_{model_id}_predictions.csv'
+  if predictions_file_name is None:
+    predictions_file_name = f'/content/round_{current_round}_model_{model_id}_predictions.csv'
   
   neutralized_pred_df.to_csv(predictions_file_name, index=True, header=['prediction'])
   napi.upload_predictions(predictions_file_name, model_id=creds[model_id], version=1)
