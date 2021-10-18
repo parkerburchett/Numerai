@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
 from sklearn.decomposition import PCA
-
+import lightgbm as lgb
 
 class PCATargetModelWapper:
     """
@@ -83,7 +83,8 @@ class PCATargetModelWapper:
             Returns a dictionary of this model's params
         """
 
-        regressor_params = self.model.get_parmas()
+        regressor_params = self.model.get_params()
+
 
         wrapper_params = {
             'feature_cols':self.feature_cols,
@@ -95,6 +96,12 @@ class PCATargetModelWapper:
             'wrapper_params': wrapper_params
         }
         return params
+
+    def __str__(self):
+        return str(self.model) + str(self.model.get_params()) + f'\n feature_cols: {self.feature_cols}' + f'\n target_cols: {self.target_cols}'  
+
+
+
 
 
 class PCATargetEnsemble:
@@ -118,3 +125,15 @@ class PCATargetEnsemble:
         prediction_matrix = np.array([model.predict(X) for model in self.models])
         weighted_predictions = prediction_matrix.T.dot(self.weights)
         return weighted_predictions
+
+
+
+def testing():
+    feature_cols = ['feature3', 'feature_33']
+    model = PCATargetModelWapper(model=lgb.LGBMRegressor(n_estimators=1200),
+
+                                feature_cols=feature_cols,
+                                target_cols=['target_1', 'target_23'])
+    print(model)
+
+
