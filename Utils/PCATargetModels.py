@@ -3,6 +3,9 @@ import numpy as np
 from sklearn.decomposition import PCA
 import lightgbm as lgb
 
+import warnings # should remove the future warning error. Untested
+warnings.simplefilter(action='ignore', category=FutureWarning)
+
 class PCATargetModelWapper:
     """
     A wapper for a sklearn-esque model that is trained to predict the PCA of a subset of the new target cols.
