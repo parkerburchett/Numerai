@@ -98,7 +98,7 @@ class PCATargetModelWapper:
         return params
 
     def __str__(self):
-        return str(self.model) + str(self.model.get_params()) + f'\n feature_cols: {self.feature_cols}' + f'\n target_cols: {self.target_cols}'  
+        return str(self.model) + str(self.model.get_params()) + f'\n feature_cols: {self.feature_cols[:3]}...' + f'\n target_cols: {self.target_cols[:3]}...'  
 
 
 
@@ -129,11 +129,13 @@ class PCATargetEnsemble:
 
 
 def testing():
-    feature_cols = ['feature3', 'feature_33']
+    feature_cols = ['feature3', 'feature_33']*100
+
     model = PCATargetModelWapper(model=lgb.LGBMRegressor(n_estimators=1200),
 
                                 feature_cols=feature_cols,
                                 target_cols=['target_1', 'target_23'])
     print(model)
 
+testing()
 
