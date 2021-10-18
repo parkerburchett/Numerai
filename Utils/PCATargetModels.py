@@ -78,6 +78,24 @@ class PCATargetModelWapper:
         pca_transformed_predictions = self.model.predict(X[self.feature_cols])
         return self._inverse_transform_predictions(pca_transformed_predictions)
 
+    def get_params(self):
+        """
+            Returns a dictionary of this model's params
+        """
+
+        regressor_params = self.model.get_parmas()
+
+        wrapper_params = {
+            'feature_cols':self.feature_cols,
+            'target_cols':self.target_cols
+        }
+
+        params = {
+            'regressor_params': regressor_params,
+            'wrapper_params': wrapper_params
+        }
+        return params
+
 
 class PCATargetEnsemble:
     """
