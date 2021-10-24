@@ -42,18 +42,18 @@ class PCATargetModelWapper:
         if X.shape[0] != targets_df.shape[0]:
             raise ValueError(f'X must have the same number of rows as targets_df.\nYou passed: X.shape {X.shape} target_dfs.shape {target_dfs.shape}')
         
-        features_are_valid = all(elem in X.columns for elem in self.feature_cols)
+        features_are_valid = np.all([feature in X.columns for feature in self.feature_cols])
         if not features_are_valid:
             raise ValueError("Some features in self.feature_cols are not in X.columns")
 
-        targets_are_valid = all(elem in targets_df.columns for elem in self.target_cols)
+        targets_are_valid = np.all([target in targets_df.columns for target in self.target_cols])
         if not targets_are_valid:
             raise ValueError("Some targets in self.target_cols are not in target_dfs.columns")
         
-        targets_df.loc[:, self.target_cols] = targets_df.loc[:, self.target_cols].fillna(0.5)
-        self.pca_model = PCA(1).fit(targets_df[self.target_cols])
-        pca_transformed_targets = self.pca_model.transform(targets_df[self.target_cols]).reshape(targets_df.shape[0])
+        filled_targets_df = targets_df.loc[:, self.target_cols].fillna(0.5)
+        self.pca_model = PCA(1).fit(filled_targets_df)
 
+        pca_transformed_targets = self.pca_model.transform(filled_targets_df).reshape(filled_targets_df.shape[0])
         self.model.fit(X[self.feature_cols], pca_transformed_targets)
 
 
@@ -74,12 +74,13 @@ class PCATargetModelWapper:
         """
             Predict the the PCA transformed target of X and then do the inverse transformation
         """
-        features_are_valid = all(elem in X.columns for elem in self.feature_cols)
+        features_are_valid = np.all([feature in X.columns for feature in self.feature_cols])
         if not features_are_valid:
             raise ValueError("Some features in self.feature_cols are not in X.columns")
 
         pca_transformed_predictions = self.model.predict(X[self.feature_cols])
         return self._inverse_transform_predictions(pca_transformed_predictions)
+
 
     def get_params(self):
         """
