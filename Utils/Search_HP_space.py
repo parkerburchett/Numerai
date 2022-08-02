@@ -71,10 +71,9 @@ def evaluate_model(model: lgb.LGBMRegressor, feature_sub_list: list, valid_dfs: 
 def save_model_performace(model_params: dict, feature_sub_list:list, model_summary: pd.DataFrame,
                           records: list, save_path: str) -> None:
     """Save model params, feature_sub_list to disk. """
-    cleaned_model_data = model_summary.mean(axis=1).round(6).to_dict() #
-    cleaned_model_data['feature_sub_list'] = str(feature_sub_list)
-    cleaned_model_data.update(model_params)
-    records.append(cleaned_model_data)
+    model_summary['feature_sub_list'] = str(feature_sub_list)
+    model_summary.update(model_params)
+    records.append(model_summary)
     pd.DataFrame.from_records(records).to_csv(save_path)
 
 
