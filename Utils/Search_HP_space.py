@@ -13,18 +13,10 @@ import matplotlib.pyplot as plt
 from optuna.visualization.matplotlib import plot_param_importances
 
 
-
 TRAIN_FILE_PATH = 'train_int8.parquet'
 VALID_FILE_PATH = 'validation_int8.parquet'
 TARGET = 'target'
 PREDICTION = 'prediction'
-
-# SAVE_DIR = "/content/drive/MyDrive/CryptoCurency/Numerai/Notebooks/Explore New Data/post 7 trees/v4_feature_subset_tests"
-
-# FIRST_N_FOLDS = 3
-# NUM_OPTUNA_TRIALS = 200
-# NUM_FEATURES = 200
-# N_ESTIMATORS = 500
 
 def _build_save_path(save_dir: str):
   unix_time_now = int(time.mktime(datetime.datetime.now().timetuple()))
