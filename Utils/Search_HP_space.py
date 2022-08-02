@@ -45,17 +45,27 @@ def build_validation_dfs(valid_df: pd.DataFrame) -> list:
   return valid_dfs
 
 
+def mean_corr_model_eval(model_summary: pd.DataFrame) -> float:
+    model_summary.T['mean'].iloc[:3].mean()
+
 def evaluate_model(model: lgb.LGBMRegressor, feature_sub_list: list, valid_dfs: list,
                    model_eval_func: Callable): #model_eval_func takes [pd.DataFrame, float]
     """Returns the model fittness, df of summary of results"""
     cv_results = {}
     for fold_num, sub_valid_df in enumerate(valid_dfs):
         sub_valid_df[PREDICTION] = model.predict(X=sub_valid_df[feature_sub_list])
-        cv_results[f'cv_ {fold_num}'] = numereval.evaluate(sub_valid_df)['metrics']
+        cv_results[f'cv_{fold_num}'] = numereval.evaluate(sub_valid_df)['metrics']
 
     model_cv_summary = pd.DataFrame(cv_results)
+
+    model_summary = {}
+    for fold, data in model_cv_summary.to_dict().items():
+        for metric, score in data.items():
+            model_summary[f'{fold} {metric}'] = score
+
     model_fitness = model_eval_func(model_cv_summary)
-    return model_fitness, model_cv_summary 
+
+    return model_fitness, model_summary 
 
 
 def save_model_performace(model_params: dict, feature_sub_list:list, model_summary: pd.DataFrame,
