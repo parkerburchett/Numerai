@@ -57,6 +57,7 @@ def evaluate_model(model: lgb.LGBMRegressor, feature_sub_list: list, valid_dfs: 
         cv_results[f'cv_{fold_num}'] = numereval.evaluate(sub_valid_df)['metrics']
 
     model_cv_summary = pd.DataFrame(cv_results)
+    print(model_cv_summary)
 
     model_summary = {}
     for fold, data in model_cv_summary.to_dict().items():
@@ -113,7 +114,6 @@ def run_optuna_on_feature_subset(train_df: pd.DataFrame, valid_dfs: list, save_d
         model = lgb.LGBMRegressor(**model_params).fit(X=train_df[feature_sub_list], y=train_df[target])
         model_fitness, model_summary = evaluate_model(model, feature_sub_list, valid_dfs, model_eval_func)
         save_model_performace(model_params, feature_sub_list, model_summary, records, save_path)
-        print(model_summary)
         return model_fitness
     study = optuna.create_study(direction="maximize")
     study.optimize(objective, n_trials=num_optuna_trials)
