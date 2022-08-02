@@ -59,7 +59,7 @@ def evaluate_model(model: lgb.LGBMRegressor, feature_sub_list: list, valid_dfs: 
 
 
 def save_model_performace(model_params: dict, feature_sub_list:list, model_summary: pd.DataFrame,
-                          records: list[dict], save_path: str) -> None:
+                          records: list, save_path: str) -> None:
     """Save model params, feature_sub_list to disk. """
     cleaned_model_data = model_summary.mean(axis=1).round(6).to_dict() #
     cleaned_model_data['feature_sub_list'] = str(feature_sub_list)
@@ -86,8 +86,8 @@ def _build_model_params(trial, n_estimators: int, max_learning_rate: float, max_
         }
 
 
-def run_optuna_on_feature_subset(train_df: pd.DataFrame, valid_dfs: list[pd.DataFrame], save_dir: str, 
-                                 features: list[str], target: str,  num_features: int, n_estimators: int,
+def run_optuna_on_feature_subset(train_df: pd.DataFrame, valid_dfs: list, save_dir: str, 
+                                 features: list, target: str,  num_features: int, n_estimators: int,
                                  num_optuna_trials: int, max_learning_rate: float,  max_num_leaves: float, 
                                  max_col_sample_bytree: float, max_feature_fraction: float, max_bagging_fraction: float,
                                  max_bagging_freq: int, model_eval_func: Callable) -> None:
