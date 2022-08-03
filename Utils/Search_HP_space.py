@@ -46,7 +46,25 @@ def build_validation_dfs(valid_df: pd.DataFrame) -> list:
 
 
 def mean_corr_model_eval(model_summary: pd.DataFrame) -> float:
-    model_summary.T['mean'].iloc[:3].mean()
+    return model_summary.T['mean'].iloc[:3].mean()
+    
+def min_corr_model_eval(model_summary: pd.DataFrame) -> float:
+    return model_summary.T['mean'].iloc[:3].min()
+
+def max_corr_model_eval(model_summary: pd.DataFrame) -> float:
+    return model_summary.T['mean'].iloc[:3].max()
+
+def mean_sharp_model_eval(model_summary: pd.DataFrame) -> float:
+    return model_summary.T['sharpe'].iloc[:3].mean()
+
+def max_sharp_model_eval(model_summary: pd.DataFrame) -> float:
+    return model_summary.T['sharpe'].iloc[:3].mean()
+
+def min_sharp_model_eval(model_summary: pd.DataFrame) -> float:
+    return model_summary.T['sharpe'].iloc[:3].min()
+
+def max_sharp_model_eval(model_summary: pd.DataFrame) -> float:
+    return model_summary.T['sharpe'].iloc[:3].max()
 
 def evaluate_model(model: lgb.LGBMRegressor, feature_sub_list: list, valid_dfs: list,
                    model_eval_func: Callable): #model_eval_func takes [pd.DataFrame, float]
